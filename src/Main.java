@@ -6,10 +6,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Main {
-//    private static final Pattern EXTERNAL_ID_PATTERN = Pattern.compile("[\\|\\|]? (\\d{4}-\\d{2,3}) [\\|\\|]?");
     private static final Pattern EXTERNAL_ID_PATTERN = Pattern.compile("(\\d{4}-\\d{2,3})");
     private static final Map<String, String> INSTRUTIONS = new HashMap<>();
     private static final String ORIGIN_PATH;
+
     static {
         ORIGIN_PATH = System.getProperty("user.dir");
         INSTRUTIONS.put("archive ||", "ARCHIVE_FOUND");
@@ -31,19 +31,15 @@ public class Main {
                     String keyWord = instruction.getKey();
                     if (fileContent.toLowerCase().contains(keyWord)) {
                         String externalId = getExternalId(fileContent);
-                        System.out.println(externalId);
                         originPath = Paths.get(ORIGIN_PATH + "\\" + fileName);
-                        destinationPath = Paths.get(ORIGIN_PATH + "\\"
-                                + instruction.getValue() + "\\"
-                                + externalId + "_"
-                                + String.format("00", fileOccurence)
-                                + ".html");
+                        destinationPath = getDestinationPath(instruction, fileOccurence, externalId);
                         try {
-                            File fi = new File(destinationPath.toString());
-                            System.out.println(fi.isFile());
+                            while (new File(destinationPath.toString()).isFile()) {
+                                fileOccurence++;
+                                destinationPath = getDestinationPath(instruction, fileOccurence, externalId);
+                            }
                             Files.move(originPath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                         } catch (NoSuchFileException directoryDoesNotExist) {
-                            System.out.println("Creating (" + instruction.getValue() + ") directory");
                             Files.createDirectory(Paths.get(ORIGIN_PATH + "\\" + instruction.getValue()));
                             Files.move(originPath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                         }
@@ -53,6 +49,14 @@ public class Main {
             }
             System.out.println(counter + " " + instruction.getKey() + " files moved to " + instruction.getValue());
         }
+    }
+
+    private static Path getDestinationPath(Map.Entry<String, String> instruction, int fileOccurence, String externalId) {
+        return Paths.get(ORIGIN_PATH + "\\"
+                + instruction.getValue() + "\\"
+                + externalId + "_"
+                + fileOccurence
+                + ".html");
     }
 
     private static String getExternalId(String fileContent) {
