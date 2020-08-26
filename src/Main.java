@@ -22,9 +22,9 @@ public class Main {
         File directory = new File(ORIGIN_PATH);
         System.out.println("FILES TO LOOK THROUGH: " + directory.listFiles().length);
         for (Map.Entry<String, String> instruction : INSTRUTIONS.entrySet()) {
-            Integer counter = 0;
+            Integer filesCounter = 0;
             for (File file : directory.listFiles()) {
-                int fileOccurence = 1;
+                int specificFileOccurences = 1;
                 if (file.isFile()) {
                     String fileName = file.getName();
                     String fileContent = readFromInputStream(new FileInputStream(file));
@@ -32,22 +32,22 @@ public class Main {
                     if (fileContent.toLowerCase().contains(keyWord)) {
                         String externalId = getExternalId(fileContent);
                         originPath = Paths.get(ORIGIN_PATH + "\\" + fileName);
-                        destinationPath = getDestinationPath(instruction, fileOccurence, externalId);
+                        destinationPath = getDestinationPath(instruction, specificFileOccurences, externalId);
                         try {
                             while (new File(destinationPath.toString()).isFile()) {
-                                fileOccurence++;
-                                destinationPath = getDestinationPath(instruction, fileOccurence, externalId);
+                                specificFileOccurences++;
+                                destinationPath = getDestinationPath(instruction, specificFileOccurences, externalId);
                             }
                             Files.move(originPath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                         } catch (NoSuchFileException directoryDoesNotExist) {
                             Files.createDirectory(Paths.get(ORIGIN_PATH + "\\" + instruction.getValue()));
                             Files.move(originPath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
                         }
-                        counter++;
+                        filesCounter++;
                     }
                 }
             }
-            System.out.println(counter + " " + instruction.getKey() + " files moved to " + instruction.getValue());
+            System.out.println(filesCounter + " " + instruction.getKey() + " files moved to " + instruction.getValue());
         }
     }
 
